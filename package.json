@@ -6,11 +6,11 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/toolittlecakes/excalibur-room-cli.git"
+    "url": "git+ssh://git@github.com/toolittlecakes/excalidraw-room-cli.git"
   },
-  "homepage": "https://github.com/toolittlecakes/excalibur-room-cli#readme",
+  "homepage": "https://github.com/toolittlecakes/excalidraw-room-cli#readme",
   "bugs": {
-    "url": "https://github.com/toolittlecakes/excalibur-room-cli/issues"
+    "url": "https://github.com/toolittlecakes/excalidraw-room-cli/issues"
   },
   "keywords": [
     "excalidraw",
