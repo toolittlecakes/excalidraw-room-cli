@@ -20,7 +20,7 @@
     "whiteboard"
   ],
   "bin": {
-    "excalidraw-room": "./bin/excalidraw-room"
+    "excalidraw-room": "bin/excalidraw-room"
   },
   "files": [
     "bin",
