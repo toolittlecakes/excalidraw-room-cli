@@ -1,0 +1,49 @@
+{
+  "name": "excalidraw-room-cli",
+  "version": "0.1.0",
+  "description": "JSON-first CLI for editing shared Excalidraw rooms",
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/toolittlecakes/excalibur-room-cli.git"
+  },
+  "homepage": "https://github.com/toolittlecakes/excalibur-room-cli#readme",
+  "bugs": {
+    "url": "https://github.com/toolittlecakes/excalibur-room-cli/issues"
+  },
+  "keywords": [
+    "excalidraw",
+    "cli",
+    "agent",
+    "diagram",
+    "whiteboard"
+  ],
+  "bin": {
+    "excalidraw-room": "./bin/excalidraw-room"
+  },
+  "files": [
+    "bin",
+    "src",
+    "scripts",
+    "skill-data",
+    "skills",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "cli": "bun run src/index.ts",
+    "start": "bun run src/index.ts"
+  },
+  "engines": {
+    "bun": ">=1.1.0"
+  },
+  "dependencies": {
+    "@excalidraw/excalidraw": "^0.18.0",
+    "fractional-indexing": "^3.2.0",
+    "playwright-core": "^1.53.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "socket.io-client": "^4.8.1"
+  }
+}

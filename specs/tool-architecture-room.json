@@ -1,0 +1,57 @@
+{
+  "mode": "append",
+  "ops": [
+    { "type": "addText", "x": 900, "y": 360, "text": "Excalidraw Room CLI: agent workflow over shared room", "fontSize": 32, "textAlign": "center" },
+
+    { "type": "addRect", "x": 80, "y": 460, "width": 280, "height": 120, "backgroundColor": "#dbe4ff", "strokeColor": "#4a9eed", "label": "AI agent\nasks for a change", "labelFontSize": 24 },
+    { "type": "addRect", "x": 80, "y": 650, "width": 280, "height": 140, "backgroundColor": "#fff3bf", "strokeColor": "#f59e0b", "label": "Input forms\nroom URL\ncommand flags\nJSON spec", "labelFontSize": 22 },
+    { "type": "addRect", "x": 80, "y": 860, "width": 280, "height": 140, "backgroundColor": "#eebefa", "strokeColor": "#ec4899", "label": "High-level commands\nstatus / snapshot\napply-spec / restore", "labelFontSize": 22 },
+
+    { "type": "addRect", "x": 450, "y": 460, "width": 300, "height": 120, "backgroundColor": "#dbe4ff", "strokeColor": "#4a9eed", "label": "Spec layer", "labelFontSize": 28 },
+    { "type": "addRect", "x": 450, "y": 650, "width": 300, "height": 140, "backgroundColor": "#fff3bf", "strokeColor": "#f59e0b", "label": "Operations\naddRect addText\naddArrow move delete", "labelFontSize": 22 },
+    { "type": "addRect", "x": 450, "y": 860, "width": 300, "height": 140, "backgroundColor": "#c3fae8", "strokeColor": "#22c55e", "label": "Mode semantics\nappend = extend room\nreplace = rebuild with tombstones", "labelFontSize": 22 },
+
+    { "type": "addRect", "x": 840, "y": 430, "width": 330, "height": 100, "backgroundColor": "#d3f9d8", "strokeColor": "#22c55e", "label": "CLI core", "labelFontSize": 30 },
+    { "type": "addRect", "x": 840, "y": 580, "width": 330, "height": 120, "backgroundColor": "#dbe4ff", "strokeColor": "#4a9eed", "label": "Parse room URL\nextract roomId + roomKey", "labelFontSize": 22 },
+    { "type": "addRect", "x": 840, "y": 750, "width": 330, "height": 120, "backgroundColor": "#d0bfff", "strokeColor": "#8b5cf6", "label": "Read current scene\nFirestore document -> decrypt AES-GCM", "labelFontSize": 22 },
+    { "type": "addRect", "x": 840, "y": 920, "width": 330, "height": 140, "backgroundColor": "#c3fae8", "strokeColor": "#22c55e", "label": "Apply scene transform\ngenerate ids / indexes\nbump version / updated timestamps", "labelFontSize": 22 },
+    { "type": "addRect", "x": 840, "y": 1110, "width": 330, "height": 140, "backgroundColor": "#ffd8a8", "strokeColor": "#f59e0b", "label": "Persist new scene\nencrypt AES-GCM\nPATCH Firestore scene document", "labelFontSize": 22 },
+
+    { "type": "addRect", "x": 1260, "y": 430, "width": 310, "height": 100, "backgroundColor": "#dbe4ff", "strokeColor": "#4a9eed", "label": "Live transport", "labelFontSize": 30 },
+    { "type": "addRect", "x": 1260, "y": 580, "width": 310, "height": 120, "backgroundColor": "#d0bfff", "strokeColor": "#8b5cf6", "label": "Join socket room\ninit-room -> join-room", "labelFontSize": 22 },
+    { "type": "addRect", "x": 1260, "y": 750, "width": 310, "height": 120, "backgroundColor": "#ffc9c9", "strokeColor": "#ef4444", "label": "Headers required\nOrigin: excalidraw.com\nUser-Agent", "labelFontSize": 22 },
+    { "type": "addRect", "x": 1260, "y": 920, "width": 310, "height": 140, "backgroundColor": "#c3fae8", "strokeColor": "#22c55e", "label": "Broadcast change\nSCENE_UPDATE payload\nserver-broadcast over socket.io", "labelFontSize": 22 },
+    { "type": "addRect", "x": 1260, "y": 1110, "width": 310, "height": 140, "backgroundColor": "#fff3bf", "strokeColor": "#f59e0b", "label": "watch command\nsubscribes to client-broadcast\ndecodes live room traffic", "labelFontSize": 22 },
+
+    { "type": "addRect", "x": 1660, "y": 430, "width": 320, "height": 100, "backgroundColor": "#d3f9d8", "strokeColor": "#22c55e", "label": "Shared Excalidraw room", "labelFontSize": 28 },
+    { "type": "addRect", "x": 1660, "y": 600, "width": 320, "height": 140, "backgroundColor": "#dbe4ff", "strokeColor": "#4a9eed", "label": "What users see\nnew shapes / text / arrows\nupdates land without reload", "labelFontSize": 22 },
+    { "type": "addRect", "x": 1660, "y": 810, "width": 320, "height": 140, "backgroundColor": "#fff3bf", "strokeColor": "#f59e0b", "label": "State safety\nsnapshot before risky change\nrestore if diagram goes wrong", "labelFontSize": 22 },
+    { "type": "addRect", "x": 1660, "y": 1020, "width": 320, "height": 160, "backgroundColor": "#ffc9c9", "strokeColor": "#ef4444", "label": "Deletion model\nreplace/restore emit tombstones\nopen clients immediately see removals", "labelFontSize": 22 },
+
+    { "type": "addArrow", "x1": 360, "y1": 520, "x2": 450, "y2": 520, "strokeColor": "#4a9eed" },
+    { "type": "addArrow", "x1": 360, "y1": 720, "x2": 450, "y2": 720, "strokeColor": "#f59e0b" },
+    { "type": "addArrow", "x1": 360, "y1": 930, "x2": 450, "y2": 930, "strokeColor": "#ec4899" },
+
+    { "type": "addArrow", "x1": 750, "y1": 520, "x2": 840, "y2": 480, "strokeColor": "#4a9eed" },
+    { "type": "addArrow", "x1": 750, "y1": 720, "x2": 840, "y2": 810, "strokeColor": "#f59e0b" },
+    { "type": "addArrow", "x1": 750, "y1": 930, "x2": 840, "y2": 985, "strokeColor": "#22c55e" },
+
+    { "type": "addArrow", "x1": 1005, "y1": 530, "x2": 1005, "y2": 580, "strokeColor": "#22c55e" },
+    { "type": "addArrow", "x1": 1005, "y1": 700, "x2": 1005, "y2": 750, "strokeColor": "#4a9eed" },
+    { "type": "addArrow", "x1": 1005, "y1": 870, "x2": 1005, "y2": 920, "strokeColor": "#8b5cf6" },
+    { "type": "addArrow", "x1": 1005, "y1": 1060, "x2": 1005, "y2": 1110, "strokeColor": "#22c55e" },
+
+    { "type": "addArrow", "x1": 1170, "y1": 640, "x2": 1260, "y2": 640, "strokeColor": "#4a9eed" },
+    { "type": "addArrow", "x1": 1170, "y1": 980, "x2": 1260, "y2": 980, "strokeColor": "#22c55e" },
+    { "type": "addArrow", "x1": 1170, "y1": 1180, "x2": 1660, "y2": 670, "strokeColor": "#f59e0b" },
+
+    { "type": "addArrow", "x1": 1570, "y1": 640, "x2": 1660, "y2": 670, "strokeColor": "#8b5cf6" },
+    { "type": "addArrow", "x1": 1570, "y1": 980, "x2": 1660, "y2": 1090, "strokeColor": "#22c55e" },
+    { "type": "addArrow", "x1": 1570, "y1": 1180, "x2": 1660, "y2": 880, "strokeColor": "#f59e0b" },
+
+    { "type": "addArrow", "x1": 1820, "y1": 740, "x2": 1820, "y2": 810, "strokeColor": "#4a9eed" },
+    { "type": "addArrow", "x1": 1820, "y1": 950, "x2": 1820, "y2": 1020, "strokeColor": "#ef4444" },
+
+    { "type": "addText", "x": 1415, "y": 1295, "text": "Single path: read current room -> transform scene -> write encrypted scene -> broadcast live diff", "fontSize": 22, "textAlign": "center" }
+  ]
+}
