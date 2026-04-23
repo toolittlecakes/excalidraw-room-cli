@@ -1,6 +1,6 @@
 {
   "name": "excalidraw-room-cli",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "JSON-first CLI for editing shared Excalidraw rooms",
   "license": "MIT",
   "type": "module",
