@@ -125,6 +125,7 @@ type AddRectSpec = {
   label?: string;
   labelFontSize?: number;
   labelColor?: string;
+  labelFontFamily?: number;
 };
 
 type AddTextSpec = {
@@ -133,6 +134,7 @@ type AddTextSpec = {
   y: number;
   text: string;
   fontSize?: number;
+  fontFamily?: number;
   strokeColor?: string;
   textAlign?: "left" | "center" | "right";
 };
@@ -226,7 +228,7 @@ Spec formats:
 
 Supported operations:
   addRect  { x, y, width, height, backgroundColor?, strokeColor?, label?, labelFontSize?, labelColor? }
-  addText  { x, y, text, fontSize?, strokeColor?, textAlign? }
+  addText  { x, y, text, fontSize?, fontFamily?, strokeColor?, textAlign? }
   addArrow { x1,y1,x2,y2 | fromId,toId, strokeColor?, endArrowhead? }
   move     { id, dx?, dy?, x?, y? }
   delete   { ids: [...] }
@@ -547,6 +549,7 @@ function createText(args: {
   y: number;
   text: string;
   fontSize?: number;
+  fontFamily?: number;
   strokeColor?: string;
   textAlign?: "left" | "center" | "right";
   index: string;
@@ -571,7 +574,7 @@ function createText(args: {
     }),
     text: args.text,
     fontSize,
-    fontFamily: DEFAULT_FONT_FAMILY,
+    fontFamily: args.fontFamily ?? DEFAULT_FONT_FAMILY,
     textAlign: args.textAlign ?? "left",
     verticalAlign: "top",
     containerId: null,
@@ -1003,6 +1006,7 @@ function applyAddRect(elements: ExcalidrawElement[], spec: AddRectSpec): SceneCh
     y: rect.y + rect.height / 2 - estimateTextHeight(spec.label, spec.labelFontSize ?? 22) / 2,
     text: spec.label,
     fontSize: spec.labelFontSize ?? 22,
+    fontFamily: spec.labelFontFamily ?? 2,
     strokeColor: spec.labelColor ?? spec.strokeColor ?? "#1e1e1e",
     textAlign: "center",
     index: nextIndex([...elements, rect]),
@@ -1020,6 +1024,7 @@ function applyAddText(elements: ExcalidrawElement[], spec: AddTextSpec): SceneCh
     y: spec.y,
     text: spec.text,
     fontSize: spec.fontSize,
+    fontFamily: spec.fontFamily,
     strokeColor: spec.strokeColor,
     textAlign: spec.textAlign,
     index: nextIndex(elements),
