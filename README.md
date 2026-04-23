@@ -9,14 +9,35 @@ JSON-first CLI для shared-room Excalidraw.
 - `node` для export runner
 - `Google Chrome` или `Chromium`
 
-После публикации пакета:
+Основной путь сейчас: установка прямо с GitHub.
+
+Через `bun`:
+
+```bash
+bun add -g github:toolittlecakes/excalidraw-room-cli
+```
+
+Через `npm`:
+
+```bash
+npm install -g git+https://github.com/toolittlecakes/excalidraw-room-cli.git
+```
+
+Потом:
+
+```bash
+excalidraw-room help
+excalidraw-room setup --all-agents
+```
+
+Если позже пакет будет опубликован в npm, тогда install станет ещё проще:
 
 ```bash
 bun add -g excalidraw-room-cli
 npm install -g excalidraw-room-cli
 ```
 
-## Публикация в npm через GitHub Actions
+## Будущая публикация в npm через GitHub Actions
 
 В репозитории уже есть workflow:
 - [.github/workflows/publish.yml](/Users/sne/ai_assistant/excalidraw-room-cli/.github/workflows/publish.yml:1)
