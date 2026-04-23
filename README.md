@@ -16,6 +16,22 @@ bun add -g excalidraw-room-cli
 npm install -g excalidraw-room-cli
 ```
 
+## Публикация в npm через GitHub Actions
+
+В репозитории уже есть workflow:
+- [.github/workflows/publish.yml](/Users/sne/ai_assistant/excalidraw-room-cli/.github/workflows/publish.yml:1)
+
+Он рассчитан на npm trusted publishing через OIDC, без `NPM_TOKEN`.
+
+Что нужно один раз сделать на стороне npm:
+- открыть [npm trusted publishers](https://docs.npmjs.com/trusted-publishers/)
+- добавить trusted publisher для GitHub Actions
+- repository: `toolittlecakes/excalidraw-room-cli`
+- workflow file: `.github/workflows/publish.yml`
+- environment: не нужен
+
+После этого публикация делается из GitHub Actions через ручной запуск workflow `Publish to npm`.
+
 Для локальной разработки и ручного линка:
 
 ```bash
