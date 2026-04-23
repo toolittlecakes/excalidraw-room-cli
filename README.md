@@ -37,7 +37,7 @@ bun add -g excalidraw-room-cli
 npm install -g excalidraw-room-cli
 ```
 
-## Будущая публикация в npm через GitHub Actions
+## Публикация в npm через GitHub Actions
 
 В репозитории уже есть workflow:
 - [.github/workflows/publish.yml](/Users/sne/ai_assistant/excalidraw-room-cli/.github/workflows/publish.yml:1)
@@ -51,7 +51,24 @@ npm install -g excalidraw-room-cli
 - workflow file: `.github/workflows/publish.yml`
 - environment: не нужен
 
-После этого публикация делается из GitHub Actions через ручной запуск workflow `Publish to npm`.
+После этого публикация идёт автоматически по git tag вида `v*`.
+
+Пример релиза:
+
+```bash
+cd /Users/sne/ai_assistant/excalidraw-room-cli
+npm version patch
+git push origin main --tags
+```
+
+Или вручную:
+
+```bash
+git tag v0.1.1
+git push origin main --tags
+```
+
+Workflow `Publish to npm` сработает автоматически на push такого тега.
 
 Для локальной разработки и ручного линка:
 

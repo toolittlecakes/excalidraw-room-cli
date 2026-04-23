@@ -1,7 +1,9 @@
 name: Publish to npm
 
 on:
-  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
 
 permissions:
   contents: read
@@ -38,4 +40,4 @@ jobs:
         run: npm pack --dry-run
 
       - name: Publish to npm
-        run: npm publish --provenance --access public
+        run: npm publish --provenance
