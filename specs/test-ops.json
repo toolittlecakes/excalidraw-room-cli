@@ -1,0 +1,21 @@
+{
+  "mode": "append",
+  "ops": [
+    {
+      "type": "addText",
+      "x": 530,
+      "y": 230,
+      "text": "CLI smoke",
+      "fontSize": 24,
+      "textAlign": "center"
+    },
+    {
+      "type": "addArrow",
+      "x1": 250,
+      "y1": 150,
+      "x2": 420,
+      "y2": 150,
+      "strokeColor": "#1971c2"
+    }
+  ]
+}

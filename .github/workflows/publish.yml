@@ -1,0 +1,43 @@
+name: Publish to npm
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Smoke test CLI
+        run: |
+          bun run src/index.ts help >/dev/null
+          bun run src/index.ts skill >/dev/null
+
+      - name: Check package contents
+        run: npx -y npm@11.13.0 pack --dry-run
+
+      - name: Publish to npm
+        run: npx -y npm@11.13.0 publish --provenance

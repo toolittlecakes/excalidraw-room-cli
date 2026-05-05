@@ -1,0 +1,57 @@
+{
+  "mode": "replace",
+  "ops": [
+    { "type": "addText", "x": 1180, "y": 90, "text": "Excalidraw Room CLI\nCurrent architecture", "fontSize": 34, "fontFamily": 2, "textAlign": "center" },
+    { "type": "addText", "x": 1180, "y": 160, "text": "Install -> setup skill -> inspect room -> apply JSON -> encrypt -> broadcast", "fontSize": 18, "fontFamily": 2, "textAlign": "center" },
+
+    { "type": "addRect", "x": 80, "y": 250, "width": 360, "height": 95, "backgroundColor": "#dbe4ff", "strokeColor": "#2563eb", "label": "Install CLI\nGitHub or npm", "labelFontSize": 24, "labelFontFamily": 2 },
+    { "type": "addRect", "x": 80, "y": 390, "width": 360, "height": 105, "backgroundColor": "#e9ecef", "strokeColor": "#495057", "label": "Setup skill\nsetup --all-agents", "labelFontSize": 24, "labelFontFamily": 2 },
+    { "type": "addRect", "x": 80, "y": 540, "width": 360, "height": 110, "backgroundColor": "#fff3bf", "strokeColor": "#d97706", "label": "Agent reads skill\nexcalidraw-room skill", "labelFontSize": 22, "labelFontFamily": 2 },
+
+    { "type": "addRect", "x": 540, "y": 250, "width": 390, "height": 95, "backgroundColor": "#d3f9d8", "strokeColor": "#16a34a", "label": "Inspect room\nstatus / dump / snapshot", "labelFontSize": 24, "labelFontFamily": 2 },
+    { "type": "addRect", "x": 540, "y": 390, "width": 390, "height": 120, "backgroundColor": "#dbe4ff", "strokeColor": "#2563eb", "label": "Write path\napply-json with file or heredoc\nappend by default", "labelFontSize": 20, "labelFontFamily": 2 },
+    { "type": "addRect", "x": 540, "y": 560, "width": 390, "height": 130, "backgroundColor": "#ffe8cc", "strokeColor": "#ea580c", "label": "JSON ops\naddRect addText addArrow\nmove delete", "labelFontSize": 20, "labelFontFamily": 2 },
+
+    { "type": "addRect", "x": 1070, "y": 220, "width": 430, "height": 85, "backgroundColor": "#ede9fe", "strokeColor": "#7c3aed", "label": "CLI core", "labelFontSize": 28, "labelFontFamily": 2 },
+    { "type": "addRect", "x": 1070, "y": 350, "width": 430, "height": 105, "backgroundColor": "#f1f5f9", "strokeColor": "#475569", "label": "Parse room URL\nroomId + roomKey\nload JSON input", "labelFontSize": 20, "labelFontFamily": 2 },
+    { "type": "addRect", "x": 1070, "y": 500, "width": 430, "height": 120, "backgroundColor": "#dbe4ff", "strokeColor": "#2563eb", "label": "Read scene\nFirestore document\nAES-GCM decrypt", "labelFontSize": 20, "labelFontFamily": 2 },
+    { "type": "addRect", "x": 1070, "y": 670, "width": 430, "height": 130, "backgroundColor": "#d3f9d8", "strokeColor": "#16a34a", "label": "Transform scene\napply JSON ops\nids, indexes, versions", "labelFontSize": 20, "labelFontFamily": 2 },
+    { "type": "addRect", "x": 1070, "y": 850, "width": 430, "height": 135, "backgroundColor": "#fee2e2", "strokeColor": "#dc2626", "label": "Persist scene\nAES-GCM encrypt\nPATCH Firestore\ntombstones on replace", "labelFontSize": 20, "labelFontFamily": 2 },
+
+    { "type": "addRect", "x": 1640, "y": 220, "width": 410, "height": 85, "backgroundColor": "#cffafe", "strokeColor": "#0891b2", "label": "Live transport", "labelFontSize": 28, "labelFontFamily": 2 },
+    { "type": "addRect", "x": 1640, "y": 350, "width": 410, "height": 105, "backgroundColor": "#ede9fe", "strokeColor": "#7c3aed", "label": "Join room\ninit-room -> join-room\nheaders matter", "labelFontSize": 20, "labelFontFamily": 2 },
+    { "type": "addRect", "x": 1640, "y": 500, "width": 410, "height": 120, "backgroundColor": "#d3f9d8", "strokeColor": "#16a34a", "label": "Broadcast diff\nSCENE_UPDATE\nsocket.io", "labelFontSize": 20, "labelFontFamily": 2 },
+    { "type": "addRect", "x": 1640, "y": 670, "width": 410, "height": 120, "backgroundColor": "#fff3bf", "strokeColor": "#d97706", "label": "watch command\nsubscribe and decode\nlive updates", "labelFontSize": 20, "labelFontFamily": 2 },
+    { "type": "addRect", "x": 1640, "y": 840, "width": 410, "height": 135, "backgroundColor": "#dbe4ff", "strokeColor": "#2563eb", "label": "Shared board\nchanges appear live\nrestore and delete propagate", "labelFontSize": 20, "labelFontFamily": 2 },
+
+    { "type": "addRect", "x": 300, "y": 900, "width": 430, "height": 120, "backgroundColor": "#f8fafc", "strokeColor": "#64748b", "label": "Safety\nsnapshot before risky edits\nrestore when needed", "labelFontSize": 20, "labelFontFamily": 2 },
+    { "type": "addRect", "x": 860, "y": 1060, "width": 540, "height": 120, "backgroundColor": "#e0f2fe", "strokeColor": "#0284c7", "label": "Export\nexport-image from scene JSON\nPNG, SVG, crop, padding", "labelFontSize": 20, "labelFontFamily": 2 },
+    { "type": "addRect", "x": 1480, "y": 1060, "width": 570, "height": 120, "backgroundColor": "#fef3c7", "strokeColor": "#ca8a04", "label": "Distribution\nGitHub install now\nnpm package published\nGitHub Actions release tags", "labelFontSize": 20, "labelFontFamily": 2 },
+
+    { "type": "addArrow", "x1": 440, "y1": 297, "x2": 540, "y2": 297, "strokeColor": "#2563eb" },
+    { "type": "addArrow", "x1": 440, "y1": 442, "x2": 540, "y2": 442, "strokeColor": "#495057" },
+    { "type": "addArrow", "x1": 440, "y1": 595, "x2": 540, "y2": 442, "strokeColor": "#d97706" },
+
+    { "type": "addArrow", "x1": 930, "y1": 297, "x2": 1070, "y2": 262, "strokeColor": "#16a34a" },
+    { "type": "addArrow", "x1": 930, "y1": 450, "x2": 1070, "y2": 402, "strokeColor": "#2563eb" },
+    { "type": "addArrow", "x1": 930, "y1": 625, "x2": 1070, "y2": 735, "strokeColor": "#ea580c" },
+
+    { "type": "addArrow", "x1": 1285, "y1": 305, "x2": 1285, "y2": 350, "strokeColor": "#7c3aed" },
+    { "type": "addArrow", "x1": 1285, "y1": 455, "x2": 1285, "y2": 500, "strokeColor": "#2563eb" },
+    { "type": "addArrow", "x1": 1285, "y1": 620, "x2": 1285, "y2": 670, "strokeColor": "#2563eb" },
+    { "type": "addArrow", "x1": 1285, "y1": 800, "x2": 1285, "y2": 850, "strokeColor": "#16a34a" },
+
+    { "type": "addArrow", "x1": 1500, "y1": 402, "x2": 1640, "y2": 402, "strokeColor": "#7c3aed" },
+    { "type": "addArrow", "x1": 1500, "y1": 917, "x2": 1640, "y2": 917, "strokeColor": "#dc2626" },
+
+    { "type": "addArrow", "x1": 1845, "y1": 455, "x2": 1845, "y2": 500, "strokeColor": "#0891b2" },
+    { "type": "addArrow", "x1": 1845, "y1": 620, "x2": 1845, "y2": 670, "strokeColor": "#16a34a" },
+    { "type": "addArrow", "x1": 1845, "y1": 790, "x2": 1845, "y2": 840, "strokeColor": "#d97706" },
+
+    { "type": "addArrow", "x1": 730, "y1": 960, "x2": 860, "y2": 1120, "strokeColor": "#64748b" },
+    { "type": "addArrow", "x1": 1500, "y1": 917, "x2": 1480, "y2": 1120, "strokeColor": "#0284c7" },
+    { "type": "addArrow", "x1": 2050, "y1": 917, "x2": 2050, "y2": 1060, "strokeColor": "#2563eb" },
+
+    { "type": "addText", "x": 1180, "y": 1235, "text": "One path: inspect room -> apply JSON -> encrypt + persist -> broadcast", "fontSize": 22, "fontFamily": 2, "textAlign": "center" }
+  ]
+}
