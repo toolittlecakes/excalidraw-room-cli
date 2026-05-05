@@ -1,127 +1,61 @@
 # Excalidraw Room CLI
 
-JSON-first CLI для shared-room Excalidraw.
+`excalidraw-room` is a JSON-first CLI for reading, editing, and exporting shared Excalidraw rooms.
 
-## Установка
+It is useful when you want a script or an AI agent to make precise changes to a live Excalidraw room without clicking around in the browser UI.
 
-Требования:
-- `bun`
-- `node` для export runner
-- `Google Chrome` или `Chromium`
+## Requirements
 
-Основной путь сейчас: установка прямо с GitHub.
+- Bun 1.1+
+- Node.js, used by the export runner
+- Google Chrome or Chromium for PNG/SVG export
 
-Через `bun`:
+If Chrome is not in a standard location, set:
+
+```bash
+export EXCALIDRAW_ROOM_CHROME_BIN="/path/to/chrome"
+```
+
+## Install
+
+From npm:
+
+```bash
+npm install -g excalidraw-room-cli@latest
+```
+
+From GitHub with Bun:
 
 ```bash
 bun add -g github:toolittlecakes/excalidraw-room-cli
 ```
 
-Через `npm`:
-
-```bash
-npm install -g git+https://github.com/toolittlecakes/excalidraw-room-cli.git
-```
-
-Потом:
-
-```bash
-excalidraw-room help
-excalidraw-room setup --all-agents
-```
-
-Если позже пакет будет опубликован в npm, тогда install станет ещё проще:
-
-```bash
-bun add -g excalidraw-room-cli
-npm install -g excalidraw-room-cli
-```
-
-## Публикация в npm через GitHub Actions
-
-В репозитории уже есть workflow:
-- [.github/workflows/publish.yml](/Users/sne/ai_assistant/excalidraw-room-cli/.github/workflows/publish.yml:1)
-
-Он рассчитан на npm trusted publishing через OIDC, без `NPM_TOKEN`.
-
-Что нужно один раз сделать на стороне npm:
-- открыть [npm trusted publishers](https://docs.npmjs.com/trusted-publishers/)
-- добавить trusted publisher для GitHub Actions
-- repository: `toolittlecakes/excalidraw-room-cli`
-- workflow file: `.github/workflows/publish.yml`
-- environment: не нужен
-
-После этого публикация идёт автоматически по git tag вида `v*`.
-
-Пример релиза:
-
-```bash
-cd /Users/sne/ai_assistant/excalidraw-room-cli
-npm version patch
-git push origin main --tags
-```
-
-Или вручную:
-
-```bash
-git tag v0.1.1
-git push origin main --tags
-```
-
-Workflow `Publish to npm` сработает автоматически на push такого тега.
-
-Для локальной разработки и ручного линка:
-
-```bash
-cd /Users/sne/ai_assistant/excalidraw-room-cli
-bun install
-bun link
-```
-
-После этого команда будет доступна как:
-
-```bash
-excalidraw-room help
-```
-
-Чтобы установить discovery skill локально для агентных тулов:
-
-```bash
-excalidraw-room setup --all-agents
-```
-
-Это положит stub `SKILL.md` в стандартные директории:
-- `~/.codex/skills/excalidraw-room`
-- `~/.claude/skills/excalidraw-room`
-- `~/.cursor/skills/excalidraw-room`
-- `~/.agents/skills/excalidraw-room`
-
-Если Chrome лежит не в стандартном месте, укажи путь:
-
-```bash
-export EXCALIDRAW_ROOM_CHROME_BIN='/path/to/chrome'
-```
-
-Основная идея:
-- агент читает комнату через `status` / `dump` / `snapshot`
-- агент пишет изменения через один JSON payload в `apply-json`
-- JSON можно передавать файлом или через `stdin` / heredoc
-- PNG/SVG экспортируется через `export-image`
-
-## Основные команды
+Check the install:
 
 ```bash
 excalidraw-room help
 excalidraw-room version
-excalidraw-room skill
-excalidraw-room setup --all-agents
-excalidraw-room skills list
-excalidraw-room skills get core
-excalidraw-room status 'https://excalidraw.com/#room=...,...'
-excalidraw-room dump 'https://excalidraw.com/#room=...,...'
-excalidraw-room snapshot 'https://excalidraw.com/#room=...,...'
-excalidraw-room apply-json 'https://excalidraw.com/#room=...,...' spec.json
-excalidraw-room apply-json 'https://excalidraw.com/#room=...,...' <<'JSON'
+```
+
+## Quick Start
+
+Use an Excalidraw shared room URL:
+
+```bash
+ROOM_URL="https://excalidraw.com/#room=...,..."
+```
+
+Inspect the room:
+
+```bash
+excalidraw-room status "$ROOM_URL"
+excalidraw-room dump "$ROOM_URL" room.json
+```
+
+Add elements:
+
+```bash
+excalidraw-room apply-json "$ROOM_URL" <<'JSON'
 {
   "mode": "append",
   "ops": [
@@ -133,88 +67,73 @@ excalidraw-room apply-json 'https://excalidraw.com/#room=...,...' <<'JSON'
       "height": 140,
       "backgroundColor": "#dbe4ff",
       "label": "Agent\nentrypoint"
+    },
+    {
+      "type": "addArrow",
+      "x1": 340,
+      "y1": 150,
+      "x2": 420,
+      "y2": 150
     }
   ]
 }
 JSON
-
-excalidraw-room export-image 'https://excalidraw.com/#room=...,...' /tmp/room.png
 ```
 
-## `version`
+Export the room:
+
+```bash
+excalidraw-room export-image "$ROOM_URL" room.png
+excalidraw-room export-image "$ROOM_URL" room.svg
+```
+
+## Commands
+
+```bash
+excalidraw-room help
+excalidraw-room version
+excalidraw-room status <roomUrl>
+excalidraw-room dump <roomUrl> [out.json]
+excalidraw-room watch <roomUrl>
+excalidraw-room snapshot <roomUrl> [out.json]
+excalidraw-room restore <roomUrl> <snapshot.json>
+excalidraw-room apply-json <roomUrl> [spec.json|-]
+excalidraw-room send-file <roomUrl> <elements.json> [--mode append|replace]
+excalidraw-room export-image <roomUrl> <out.png|out.svg> [options]
+```
+
+Agent integration commands:
+
+```bash
+excalidraw-room skill
+excalidraw-room skills list
+excalidraw-room skills get core
+excalidraw-room setup --all-agents
+```
+
+## Version Check
 
 ```bash
 excalidraw-room version
 ```
 
-Проверяет установленную версию против `latest` в npm registry. Если вышла новая версия, CLI печатает команды обновления:
+Prints the installed package version, checks the latest version in npm, and shows update commands when a newer version is available.
 
-```bash
-npm install -g excalidraw-room-cli@latest
-bun add -g github:toolittlecakes/excalidraw-room-cli
-```
+## Apply JSON
 
-## `apply-json`
-
-Главная команда записи:
+`apply-json` is the main write command:
 
 ```bash
 excalidraw-room apply-json <roomUrl> [spec.json|-]
 ```
 
-Поддерживает три режима ввода:
-- `apply-json <roomUrl> spec.json`
-- `apply-json <roomUrl> -`
-- `apply-json <roomUrl>` и дальше JSON через `stdin`
+Input can come from:
 
-## `skill`
+- a file: `apply-json <roomUrl> spec.json`
+- stdin: `apply-json <roomUrl> -`
+- stdin without `-`: `apply-json <roomUrl>`
 
-```bash
-excalidraw-room skill
-```
-
-Короткий встроенный agent-facing контракт:
-- какой workflow считать правильным
-- как писать через heredoc
-- почему по умолчанию надо использовать `append`
-- как правильно читать и патчить room через JSON
-- как заметить, что вышла новая версия CLI
-
-Перед основным текстом `skill` печатает update notice, если в npm доступна более новая версия. Агент должен сообщить об этом пользователю и не обновлять глобальный CLI без явного разрешения.
-
-## `setup`
-
-Основной install-flow для агентов:
-
-```bash
-excalidraw-room setup --all-agents
-```
-
-Или точечно:
-
-```bash
-excalidraw-room setup --claude
-excalidraw-room setup --codex
-excalidraw-room setup --cursor
-excalidraw-room setup --universal
-```
-
-Это устанавливает discovery stub в skill-директории выбранных агентов.
-
-## `skills`
-
-По паттерну `agent-browser`, discovery stub и основной skill разделены:
-
-```bash
-excalidraw-room skills list
-excalidraw-room skills get core
-```
-
-- `skills/excalidraw-room/SKILL.md` это тонкий discovery stub
-- `skill-data/core/SKILL.md` это основной agent-facing workflow
-- `skill` это удобный alias к `skills get core`
-
-### Формат 1: массив операций
+### Format 1: Operation Array
 
 ```json
 [
@@ -237,7 +156,7 @@ excalidraw-room skills get core
 ]
 ```
 
-### Формат 2: объект с `mode` и `ops`
+### Format 2: Mode and Operations
 
 ```json
 {
@@ -251,28 +170,18 @@ excalidraw-room skills get core
       "height": 140,
       "backgroundColor": "#dbe4ff",
       "label": "Planner\nstep"
-    },
-    {
-      "type": "addRect",
-      "x": 420,
-      "y": 80,
-      "width": 260,
-      "height": 140,
-      "backgroundColor": "#c3fae8",
-      "label": "Room\nwriter"
-    },
-    {
-      "type": "addArrow",
-      "x1": 340,
-      "y1": 150,
-      "x2": 420,
-      "y2": 150
     }
   ]
 }
 ```
 
-### Формат 3: raw elements
+Supported modes:
+
+- `append`: add new elements without removing existing elements
+- `replace`: replace the scene
+- `patch`: update existing elements by id
+
+### Format 3: Raw Elements
 
 ```json
 {
@@ -286,7 +195,7 @@ excalidraw-room skills get core
 }
 ```
 
-## Поддерживаемые операции
+## Operations
 
 ### `addRect`
 
@@ -321,7 +230,7 @@ excalidraw-room skills get core
 
 ### `addArrow`
 
-По координатам:
+By coordinates:
 
 ```json
 {
@@ -334,7 +243,7 @@ excalidraw-room skills get core
 }
 ```
 
-По элементам:
+Between existing elements:
 
 ```json
 {
@@ -356,7 +265,7 @@ excalidraw-room skills get core
 }
 ```
 
-или
+or:
 
 ```json
 {
@@ -376,31 +285,50 @@ excalidraw-room skills get core
 }
 ```
 
-## Экспорт
+## Export
 
 ```bash
-excalidraw-room export-image '<roomUrl>' /tmp/room.png
-excalidraw-room export-image '<roomUrl>' /tmp/room.svg
-excalidraw-room export-image '<roomUrl>' /tmp/crop.png --crop 80,360,1900,980
-excalidraw-room export-image '<roomUrl>' /tmp/one.png --crop-element <id> --padding 40
-excalidraw-room export-image '<roomUrl>' /tmp/group.png --crop-elements <id1,id2,id3> --padding 60
+excalidraw-room export-image "$ROOM_URL" room.png
+excalidraw-room export-image "$ROOM_URL" room.svg
+excalidraw-room export-image "$ROOM_URL" crop.png --crop 80,360,1900,980
+excalidraw-room export-image "$ROOM_URL" one.png --crop-element <id> --padding 40
+excalidraw-room export-image "$ROOM_URL" group.png --crop-elements <id1,id2,id3> --padding 60
 ```
 
-Заметки:
-- это не page screenshot, а offscreen export из scene JSON через `@excalidraw/excalidraw`
-- все crop-координаты в координатах сцены Excalidraw
+Export uses Excalidraw scene JSON and `@excalidraw/excalidraw`. It is not a browser screenshot.
 
-## Служебные команды
+Crop coordinates use Excalidraw scene coordinates.
 
-- `status`
-- `dump`
-- `watch`
-- `snapshot`
-- `restore`
-- `send-file`
+## Agent Setup
 
-`apply-spec` пока оставлен как совместимый alias к `apply-json`, но основной интерфейс теперь именно `apply-json`.
+Install the local discovery skill for supported agents:
 
-Служебные файлы CLI хранит в:
+```bash
+excalidraw-room setup --all-agents
+```
+
+Or install it for one target:
+
+```bash
+excalidraw-room setup --claude
+excalidraw-room setup --codex
+excalidraw-room setup --cursor
+excalidraw-room setup --universal
+```
+
+This writes a small discovery `SKILL.md` into standard local skill directories. The full agent workflow is available through:
+
+```bash
+excalidraw-room skill
+```
+
+## Local Files
+
+The CLI stores runtime files under:
+
 - snapshots: `~/.excalidraw-room-cli/snapshots`
-- export bundle cache: `~/.excalidraw-room-cli/cache`
+- export cache: `~/.excalidraw-room-cli/cache`
+
+## Compatibility
+
+`apply-spec` is still accepted as a compatibility alias for `apply-json`. Prefer `apply-json` for new usage.
