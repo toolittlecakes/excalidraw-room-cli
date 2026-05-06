@@ -39,7 +39,13 @@ excalidraw-room version
 
 ## Quick Start
 
-Use an Excalidraw shared room URL:
+Create a new shared room:
+
+```bash
+ROOM_URL="$(excalidraw-room create-room --json | bun -e 'const data = await Bun.stdin.json(); console.log(data.roomUrl)')"
+```
+
+Or use an existing Excalidraw shared room URL:
 
 ```bash
 ROOM_URL="https://excalidraw.com/#room=...,..."
@@ -92,6 +98,7 @@ excalidraw-room export-image "$ROOM_URL" room.svg
 ```bash
 excalidraw-room help
 excalidraw-room version
+excalidraw-room create-room [--json]
 excalidraw-room status <roomUrl>
 excalidraw-room dump <roomUrl> [out.json]
 excalidraw-room watch <roomUrl>
@@ -118,6 +125,34 @@ excalidraw-room version
 ```
 
 Prints the installed package version, checks the latest version in npm, and shows update commands when a newer version is available.
+
+## Create Room
+
+```bash
+excalidraw-room create-room
+```
+
+Creates an empty shared Excalidraw room and prints:
+
+- `roomId`
+- `roomKey`
+- `roomUrl`
+
+Use `--json` when another tool needs to consume the result:
+
+```bash
+excalidraw-room create-room --json
+```
+
+Example output:
+
+```json
+{
+  "roomId": "JUP-lk92luW3XjW16k3c",
+  "roomKey": "m7D7utg2V8m2ptM-A2kHWg",
+  "roomUrl": "https://excalidraw.com/#room=JUP-lk92luW3XjW16k3c,m7D7utg2V8m2ptM-A2kHWg"
+}
+```
 
 ## Apply JSON
 

@@ -9,6 +9,10 @@ type RoomRef = {
   roomKey: string;
 };
 
+type CreatedRoom = RoomRef & {
+  roomUrl: string;
+};
+
 type FirestoreDoc = {
   fields?: {
     sceneVersion?: { integerValue?: string };
@@ -189,6 +193,9 @@ type AgentSpec =
 const FIREBASE_API_KEY = "AIzaSyAd15pYlMci_xIp9ko6wkEsDzAAA0Dn0RU";
 const FIREBASE_PROJECT_ID = "excalidraw-room-persistence";
 const WS_SERVER_URL = "https://oss-collab.excalidraw.com";
+const EXCALIDRAW_APP_URL = "https://excalidraw.com";
+const ROOM_ID_BYTES = 15;
+const ROOM_KEY_BYTES = 16;
 const DEFAULT_FONT_FAMILY = 1;
 const DEFAULT_LINE_HEIGHT = 1.25;
 const CLI_BIN_NAME = "excalidraw-room";
@@ -216,6 +223,7 @@ Main commands:
   ${CLI_BIN_NAME} version
   ${CLI_BIN_NAME} skill
   ${CLI_BIN_NAME} setup [--claude|--codex|--cursor|--universal|--all-agents]
+  ${CLI_BIN_NAME} create-room [--json]
   ${CLI_BIN_NAME} status <roomUrl>
   ${CLI_BIN_NAME} dump <roomUrl> [out.json]
   ${CLI_BIN_NAME} watch <roomUrl>
@@ -226,9 +234,10 @@ Main commands:
   ${CLI_BIN_NAME} export-image <roomUrl> <out.png|out.svg> [--format png|svg] [--crop <x,y,w,h> | --crop-element <id> | --crop-elements <id1,id2,...>] [--padding <n>]
 
 Recommended flow:
-  1. Read current state with status / dump / snapshot
-  2. Apply JSON operations with apply-json
-  3. Export PNG/SVG with export-image
+  1. Use an existing room URL or create one with create-room
+  2. Read current state with status / dump / snapshot
+  3. Apply JSON operations with apply-json
+  4. Export PNG/SVG with export-image
 
 apply-json input:
   - file path: apply-json <roomUrl> spec.json
@@ -448,6 +457,26 @@ function parseRoomUrl(roomUrl: string): RoomRef {
     throw new Error("Invalid room URL");
   }
   return { roomId: match[1], roomKey: match[2] };
+}
+
+function randomBase64Url(byteLength: number): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(byteLength));
+  return Buffer.from(bytes).toString("base64url");
+}
+
+function formatRoomUrl(room: RoomRef): string {
+  return `${EXCALIDRAW_APP_URL}/#room=${room.roomId},${room.roomKey}`;
+}
+
+function createRoomRef(): CreatedRoom {
+  const room = {
+    roomId: randomBase64Url(ROOM_ID_BYTES),
+    roomKey: randomBase64Url(ROOM_KEY_BYTES),
+  };
+  return {
+    ...room,
+    roomUrl: formatRoomUrl(room),
+  };
 }
 
 function bytesFromBase64(value: string): Uint8Array {
@@ -1254,6 +1283,18 @@ async function commandStatus(args: string[]): Promise<void> {
   }
 }
 
+async function commandCreateRoom(args: string[]): Promise<void> {
+  const room = createRoomRef();
+  await writeScene(room, []);
+  if (args.includes("--json")) {
+    console.log(JSON.stringify(room, null, 2));
+    return;
+  }
+  console.log(`roomId ${room.roomId}`);
+  console.log(`roomKey ${room.roomKey}`);
+  console.log(`roomUrl ${room.roomUrl}`);
+}
+
 async function commandWatch(args: string[]): Promise<void> {
   const room = parseRoomUrl(args[0] ?? usage());
   const initial = await readScene(room);
@@ -1493,6 +1534,9 @@ async function main(): Promise<void> {
       return;
     case "skills":
       await commandSkills(rest);
+      return;
+    case "create-room":
+      await commandCreateRoom(rest);
       return;
     case "dump":
       await commandDump(rest);

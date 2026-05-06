@@ -1,6 +1,6 @@
 ---
 name: core
-description: Core excalidraw-room usage guide. Read this before running excalidraw-room commands. Covers the JSON-first workflow for reading a shared room, applying append or replace patches via heredoc or file input, restoring snapshots, sending raw elements, and exporting PNG or SVG from scene JSON.
+description: Core excalidraw-room usage guide. Read this before running excalidraw-room commands. Covers creating or reading a shared room, applying append or replace patches via heredoc or file input, restoring snapshots, sending raw elements, and exporting PNG or SVG from scene JSON.
 allowed-tools: Bash(excalidraw-room:*), Bash(npx excalidraw-room-cli:*), Bash(bunx excalidraw-room-cli:*)
 ---
 
@@ -8,21 +8,32 @@ allowed-tools: Bash(excalidraw-room:*), Bash(npx excalidraw-room-cli:*), Bash(bu
 
 JSON-first CLI for shared Excalidraw rooms.
 
-Use this tool when the user wants to inspect or modify a shared Excalidraw room through its room URL, not by driving the browser UI manually.
+Use this tool when the user wants to create, inspect, or modify a shared Excalidraw room through its room URL, not by driving the browser UI manually.
 
 ## The core loop
 
 ```bash
 excalidraw-room version                     # 0. check installed vs latest version
-excalidraw-room status '<roomUrl>'          # 1. inspect current state
-excalidraw-room dump '<roomUrl>'            # 2. read full scene if ids/layout matter
-excalidraw-room apply-json '<roomUrl>'      # 3. apply one JSON payload via stdin
-excalidraw-room export-image '<roomUrl>' /tmp/room.png   # 4. verify visually when needed
+excalidraw-room create-room --json          # 1. create a room if the user did not provide one
+excalidraw-room status '<roomUrl>'          # 2. inspect current state
+excalidraw-room dump '<roomUrl>'            # 3. read full scene if ids/layout matter
+excalidraw-room apply-json '<roomUrl>'      # 4. apply one JSON payload via stdin
+excalidraw-room export-image '<roomUrl>' /tmp/room.png   # 5. verify visually when needed
 ```
 
 Prefer one `apply-json` payload per logical change.
 
 If `excalidraw-room skill` prints an update notice, tell the user a newer CLI exists before relying on version-sensitive behavior. Do not update the global CLI without explicit user approval.
+
+## Create path
+
+If the user asks you to make a new room or does not provide a room URL, use:
+
+```bash
+excalidraw-room create-room --json
+```
+
+Use the returned `roomUrl` for all later commands. `roomId` alone is not enough because the room key is required to decrypt and write the scene.
 
 ## Write path
 
@@ -164,6 +175,7 @@ excalidraw-room export-image '<roomUrl>' /tmp/one.png --crop-element <id> --padd
 
 ```bash
 excalidraw-room version
+excalidraw-room create-room --json
 excalidraw-room skills list
 excalidraw-room skills get core
 excalidraw-room setup --all-agents
