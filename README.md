@@ -168,7 +168,83 @@ Input can come from:
 - stdin: `apply-json <roomUrl> -`
 - stdin without `-`: `apply-json <roomUrl>`
 
-### Format 1: Operation Array
+### Format 1: Command
+
+Add elements:
+
+```json
+{
+  "command": "elements.add",
+  "ops": [
+    {
+      "type": "addRect",
+      "x": 80,
+      "y": 80,
+      "width": 260,
+      "height": 140,
+      "backgroundColor": "#dbe4ff",
+      "label": "Planner\nstep"
+    }
+  ]
+}
+```
+
+Update existing elements:
+
+```json
+{
+  "command": "elements.update",
+  "updates": [
+    {
+      "id": "element-id",
+      "set": {
+        "text": "Updated label",
+        "fontFamily": 2
+      }
+    }
+  ]
+}
+```
+
+Delete elements:
+
+```json
+{
+  "command": "elements.delete",
+  "ids": ["id-1", "id-2"]
+}
+```
+
+Delete all live elements:
+
+```json
+{
+  "command": "elements.delete",
+  "all": true
+}
+```
+
+### Format 2: Transaction
+
+Full redraw is an explicit transaction. Deletion creates tombstones so open browser clients remove old elements.
+
+```json
+{
+  "commands": [
+    { "command": "elements.delete", "all": true },
+    {
+      "command": "elements.add",
+      "ops": [
+        { "type": "addText", "x": 100, "y": 100, "text": "New scene" }
+      ]
+    }
+  ]
+}
+```
+
+Transactions are simulated in order and written once. If any command is invalid, no room update is written.
+
+### Format 3: Legacy Operation Array
 
 ```json
 [
@@ -191,7 +267,7 @@ Input can come from:
 ]
 ```
 
-### Format 2: Mode and Operations
+### Format 4: Legacy Mode and Operations
 
 ```json
 {
@@ -216,7 +292,9 @@ Supported modes:
 - `replace`: replace the scene
 - `patch`: update existing elements by id
 
-### Format 3: Raw Elements
+Prefer command payloads for new work. Legacy `replace` remains available for compatibility.
+
+### Format 5: Legacy Raw Elements
 
 ```json
 {
@@ -229,6 +307,17 @@ Supported modes:
   ]
 }
 ```
+
+Command payloads can also add strict raw Excalidraw elements:
+
+```json
+{
+  "command": "elements.add",
+  "elements": []
+}
+```
+
+Raw elements must be complete Excalidraw elements. `elements.add` fails when an incoming id already exists live.
 
 ## Operations
 
@@ -316,6 +405,15 @@ or:
 ```json
 {
   "type": "delete",
+  "ids": ["id-1", "id-2", "id-3"]
+}
+```
+
+For new payloads, prefer the command form:
+
+```json
+{
+  "command": "elements.delete",
   "ids": ["id-1", "id-2", "id-3"]
 }
 ```

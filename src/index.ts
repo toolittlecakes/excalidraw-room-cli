@@ -190,6 +190,42 @@ type AgentSpec =
   | DeleteSpec
   | MoveSpec;
 
+type AddOnlySpec = AddRectSpec | AddTextSpec | AddArrowSpec;
+
+type ElementUpdateSpec = {
+  id: string;
+  set: Record<string, unknown>;
+};
+
+type ElementsAddCommand = {
+  command: "elements.add";
+  ops?: AddOnlySpec[];
+  elements?: ExcalidrawElement[];
+};
+
+type ElementsUpdateCommand = {
+  command: "elements.update";
+  updates: ElementUpdateSpec[];
+};
+
+type ElementsDeleteCommand = {
+  command: "elements.delete";
+  ids?: string[];
+  all?: true;
+};
+
+type ApplyJsonCommand = ElementsAddCommand | ElementsUpdateCommand | ElementsDeleteCommand;
+
+type ApplyJsonTransaction = {
+  commands: ApplyJsonCommand[];
+};
+
+type LegacyApplyJsonSpec =
+  | AgentSpec[]
+  | { mode?: "append" | "replace" | "patch"; ops?: AgentSpec[]; elements?: ExcalidrawElement[] };
+
+type ApplyJsonInput = LegacyApplyJsonSpec | ApplyJsonCommand | ApplyJsonTransaction;
+
 const FIREBASE_API_KEY = "AIzaSyAd15pYlMci_xIp9ko6wkEsDzAAA0Dn0RU";
 const FIREBASE_PROJECT_ID = "excalidraw-room-persistence";
 const WS_SERVER_URL = "https://oss-collab.excalidraw.com";
@@ -245,11 +281,17 @@ apply-json input:
   - stdin:     apply-json <roomUrl> -
 
 Spec formats:
-  1. Array of operations:
+  1. Command:
+     { "command": "elements.add", "ops": [ ... ] }
+     { "command": "elements.update", "updates": [ { "id": "...", "set": { ... } } ] }
+     { "command": "elements.delete", "ids": [ ... ] | "all": true }
+  2. Transaction:
+     { "commands": [ { "command": "elements.delete", "all": true }, { "command": "elements.add", "ops": [ ... ] } ] }
+  3. Legacy array of operations:
      [ { "type": "addRect", ... }, { "type": "addArrow", ... } ]
-  2. Object with mode + ops:
+  4. Legacy object with mode + ops:
      { "mode": "append|replace|patch", "ops": [ ... ] }
-  3. Raw elements payload:
+  5. Legacy raw elements payload:
      { "mode": "append|replace", "elements": [ ... ] }
 
 Supported operations:
@@ -258,6 +300,7 @@ Supported operations:
   addArrow { x1,y1,x2,y2 | fromId,toId, strokeColor?, endArrowhead? }
   move     { id, dx?, dy?, x?, y? }
   delete   { ids: [...] }
+  commands { elements.add | elements.update | elements.delete }
 
 Agent heredoc example:
   ${CLI_BIN_NAME} apply-json '<roomUrl>' <<'JSON'
@@ -285,7 +328,9 @@ Agent heredoc example:
   JSON
 
 Notes:
-  - replace and restore create tombstones so open clients see deletions immediately
+  - elements.delete creates tombstones so open clients see deletions immediately
+  - full redraw: use one transaction with elements.delete all + elements.add
+  - legacy replace and restore create tombstones for old live elements
   - export-image renders from scene JSON, not from a page screenshot
   - crop coordinates are Excalidraw scene coordinates`;
 }
@@ -908,6 +953,104 @@ function normalizeElementsFile(value: unknown): ExcalidrawElement[] {
   throw new Error("Expected an elements array or an object with elements");
 }
 
+function requireObject(value: unknown, name: string): Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error(`${name} must be an object`);
+  }
+  return value as Record<string, unknown>;
+}
+
+function requireStringValue(value: unknown, name: string): string {
+  if (typeof value !== "string" || value.length === 0) {
+    throw new Error(`${name} must be a non-empty string`);
+  }
+  return value;
+}
+
+function requireNumberValue(value: unknown, name: string): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    throw new Error(`${name} must be a finite number`);
+  }
+  return value;
+}
+
+function requireBooleanValue(value: unknown, name: string): boolean {
+  if (typeof value !== "boolean") {
+    throw new Error(`${name} must be a boolean`);
+  }
+  return value;
+}
+
+function validateRawElement(value: unknown): ExcalidrawElement {
+  const element = requireObject(value, "element");
+  requireStringValue(element.id, "element.id");
+  requireStringValue(element.type, "element.type");
+  requireNumberValue(element.x, "element.x");
+  requireNumberValue(element.y, "element.y");
+  requireNumberValue(element.width, "element.width");
+  requireNumberValue(element.height, "element.height");
+  requireNumberValue(element.angle, "element.angle");
+  requireStringValue(element.strokeColor, "element.strokeColor");
+  requireStringValue(element.backgroundColor, "element.backgroundColor");
+  requireStringValue(element.fillStyle, "element.fillStyle");
+  requireNumberValue(element.strokeWidth, "element.strokeWidth");
+  requireStringValue(element.strokeStyle, "element.strokeStyle");
+  requireNumberValue(element.roughness, "element.roughness");
+  requireNumberValue(element.opacity, "element.opacity");
+  if (!Array.isArray(element.groupIds)) {
+    throw new Error("element.groupIds must be an array");
+  }
+  requireNumberValue(element.seed, "element.seed");
+  requireNumberValue(element.version, "element.version");
+  requireNumberValue(element.versionNonce, "element.versionNonce");
+  requireBooleanValue(element.isDeleted, "element.isDeleted");
+  requireNumberValue(element.updated, "element.updated");
+  requireBooleanValue(element.locked, "element.locked");
+  return element as ExcalidrawElement;
+}
+
+function validateRawLiveElements(values: ExcalidrawElement[] | undefined, name: string): ExcalidrawElement[] {
+  if (!Array.isArray(values)) {
+    throw new Error(`${name} must be an array`);
+  }
+  const elements = values.map(validateRawElement);
+  ensureUniqueElementIds(elements, name);
+  for (const element of elements) {
+    if (element.isDeleted) {
+      throw new Error(`${name} must contain only live elements: ${element.id}`);
+    }
+  }
+  return elements;
+}
+
+function ensureUniqueElementIds(elements: ExcalidrawElement[], name: string): void {
+  const seen = new Set<string>();
+  for (const element of elements) {
+    if (seen.has(element.id)) {
+      throw new Error(`Duplicate element id in ${name}: ${element.id}`);
+    }
+    seen.add(element.id);
+  }
+}
+
+function ensureUniqueStrings(values: string[], name: string): void {
+  const seen = new Set<string>();
+  for (const value of values) {
+    if (seen.has(value)) {
+      throw new Error(`Duplicate ${name}: ${value}`);
+    }
+    seen.add(value);
+  }
+}
+
+function isApplyJsonTransaction(input: ApplyJsonInput): input is ApplyJsonTransaction {
+  return Boolean(input && typeof input === "object" && !Array.isArray(input) && Array.isArray((input as ApplyJsonTransaction).commands));
+}
+
+function isApplyJsonCommand(input: ApplyJsonInput): input is ApplyJsonCommand {
+  return Boolean(input && typeof input === "object" && !Array.isArray(input) && typeof (input as ApplyJsonCommand).command === "string");
+}
+
 function summarizeScene(elements: ExcalidrawElement[]): string {
   const live = elements.filter((element) => !element.isDeleted);
   const byType = new Map<string, number>();
@@ -1253,6 +1396,212 @@ function applyAgentOp(elements: ExcalidrawElement[], spec: AgentSpec): SceneChan
       return applyDelete(elements, spec);
     case "move":
       return applyMove(elements, spec);
+    default:
+      throw new Error(`Unsupported op type: ${(spec as { type?: unknown }).type}`);
+  }
+}
+
+function applyAddOnlyOp(elements: ExcalidrawElement[], spec: AddOnlySpec): SceneChange {
+  switch (spec.type) {
+    case "addRect":
+      return applyAddRect(elements, spec);
+    case "addText":
+      return applyAddText(elements, spec);
+    case "addArrow":
+      return applyAddArrow(elements, spec);
+    default:
+      throw new Error(`elements.add does not support op type: ${(spec as { type?: unknown }).type}`);
+  }
+}
+
+function applyDeleteAll(elements: ExcalidrawElement[]): SceneChange {
+  const changed: ExcalidrawElement[] = [];
+  const next = elements.map((element) => {
+    if (element.isDeleted) {
+      return element;
+    }
+    const deleted = touchElement(element, { isDeleted: true });
+    changed.push(deleted);
+    return deleted;
+  });
+  return {
+    next,
+    changed,
+    summary: `Deleted all live elements (${changed.length})`,
+  };
+}
+
+const UPDATE_FIELD_ALLOWLIST = new Set([
+  "x",
+  "y",
+  "width",
+  "height",
+  "angle",
+  "strokeColor",
+  "backgroundColor",
+  "fillStyle",
+  "strokeWidth",
+  "strokeStyle",
+  "roughness",
+  "opacity",
+  "roundness",
+  "boundElements",
+  "link",
+  "locked",
+  "text",
+  "fontSize",
+  "fontFamily",
+  "textAlign",
+  "verticalAlign",
+  "autoResize",
+  "lineHeight",
+  "points",
+  "startBinding",
+  "endBinding",
+  "startArrowhead",
+  "endArrowhead",
+  "elbowed",
+]);
+
+function normalizeUpdatePatch(element: ExcalidrawElement, patch: Record<string, unknown>): Partial<ExcalidrawElement> {
+  const normalized: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(patch)) {
+    if (!UPDATE_FIELD_ALLOWLIST.has(key)) {
+      throw new Error(`Unsupported update field for ${element.id}: ${key}`);
+    }
+    normalized[key] = value;
+  }
+
+  if (element.type === "text" && typeof normalized.text === "string") {
+    normalized.originalText = normalized.text;
+    const fontSize =
+      typeof normalized.fontSize === "number" ? normalized.fontSize : (element as ExcalidrawTextElement).fontSize;
+    normalized.width = normalized.width ?? estimateTextWidth(normalized.text, fontSize);
+    normalized.height = normalized.height ?? estimateTextHeight(normalized.text, fontSize);
+  }
+
+  return normalized as Partial<ExcalidrawElement>;
+}
+
+function applyElementUpdates(elements: ExcalidrawElement[], updates: ElementUpdateSpec[]): SceneChange {
+  if (!Array.isArray(updates) || updates.length === 0) {
+    throw new Error("elements.update requires a non-empty updates array");
+  }
+  ensureUniqueStrings(
+    updates.map((update) => update.id),
+    "update id",
+  );
+
+  let next = elements;
+  const changed: ExcalidrawElement[] = [];
+  for (const update of updates) {
+    const id = requireStringValue(update.id, "update.id");
+    const target = getElementById(next, id);
+    const patch = requireObject(update.set, `update.set for ${id}`);
+    const updated = touchElement(target, normalizeUpdatePatch(target, patch));
+    next = next.map((element) => (element.id === updated.id ? updated : element));
+    changed.push(updated);
+  }
+
+  return {
+    next,
+    changed,
+    summary: `Updated ${changed.length} element(s)`,
+  };
+}
+
+function applyElementsAddCommand(
+  elements: ExcalidrawElement[],
+  command: ElementsAddCommand,
+  deletedInTransaction: Set<string>,
+): SceneChange {
+  const hasOps = Array.isArray(command.ops);
+  const hasElements = Array.isArray(command.elements);
+  if (hasOps === hasElements) {
+    throw new Error("elements.add requires exactly one of ops or elements");
+  }
+
+  if (hasOps) {
+    let scene = elements;
+    const changed: ExcalidrawElement[] = [];
+    const summaries: string[] = [];
+    for (const op of command.ops ?? []) {
+      const result = applyAddOnlyOp(scene, op);
+      scene = result.next;
+      changed.push(...result.changed);
+      summaries.push(result.summary);
+    }
+    return {
+      next: scene,
+      changed,
+      summary: summaries.length > 0 ? summaries.join("; ") : "Added 0 element(s)",
+    };
+  }
+
+  const incoming = validateRawLiveElements(command.elements, "elements.add.elements");
+  const liveIds = new Set(getLiveElements(elements).map((element) => element.id));
+  for (const element of incoming) {
+    if (liveIds.has(element.id)) {
+      throw new Error(`Cannot add existing live element id: ${element.id}`);
+    }
+    if (deletedInTransaction.has(element.id)) {
+      throw new Error(`Cannot re-add deleted element id in the same transaction: ${element.id}`);
+    }
+  }
+  return {
+    next: [...elements, ...incoming],
+    changed: incoming,
+    summary: `Added ${incoming.length} raw element(s)`,
+  };
+}
+
+function applyElementsDeleteCommand(
+  elements: ExcalidrawElement[],
+  command: ElementsDeleteCommand,
+  deletedInTransaction: Set<string>,
+): SceneChange {
+  const deleteAll = command.all === true;
+  const ids = command.ids;
+  if (deleteAll === Array.isArray(ids)) {
+    throw new Error("elements.delete requires exactly one of all=true or ids");
+  }
+
+  if (deleteAll) {
+    const result = applyDeleteAll(elements);
+    for (const element of result.changed) {
+      deletedInTransaction.add(element.id);
+    }
+    return result;
+  }
+
+  if (!Array.isArray(ids) || ids.length === 0) {
+    throw new Error("elements.delete.ids must be a non-empty array");
+  }
+  ensureUniqueStrings(ids, "delete id");
+  for (const id of ids) {
+    getElementById(elements, id);
+  }
+  const result = applyDelete(elements, { type: "delete", ids });
+  for (const element of result.changed) {
+    deletedInTransaction.add(element.id);
+  }
+  return result;
+}
+
+function applyJsonCommand(
+  elements: ExcalidrawElement[],
+  command: ApplyJsonCommand,
+  deletedInTransaction: Set<string>,
+): SceneChange {
+  switch (command.command) {
+    case "elements.add":
+      return applyElementsAddCommand(elements, command, deletedInTransaction);
+    case "elements.update":
+      return applyElementUpdates(elements, command.updates);
+    case "elements.delete":
+      return applyElementsDeleteCommand(elements, command, deletedInTransaction);
+    default:
+      throw new Error(`Unsupported command: ${(command as { command?: unknown }).command}`);
   }
 }
 
@@ -1420,13 +1769,29 @@ async function commandSendFile(args: string[]): Promise<void> {
   console.log(`Sent ${incoming.length} elements with mode=append`);
 }
 
-async function applyJsonSpec(room: RoomRef, input: AgentSpec[] | { mode?: "append" | "replace" | "patch"; ops?: AgentSpec[]; elements?: ExcalidrawElement[] }): Promise<void> {
+async function applyJsonSpec(room: RoomRef, input: ApplyJsonInput): Promise<void> {
   const current = await readScene(room);
   let scene = current;
   let changed: ExcalidrawElement[] = [];
   const summaries: string[] = [];
 
-  if (Array.isArray(input)) {
+  if (isApplyJsonTransaction(input)) {
+    if (input.commands.length === 0) {
+      throw new Error("commands must be non-empty");
+    }
+    const deletedInTransaction = new Set<string>();
+    for (const command of input.commands) {
+      const result = applyJsonCommand(scene, command, deletedInTransaction);
+      scene = result.next;
+      changed.push(...result.changed);
+      summaries.push(result.summary);
+    }
+  } else if (isApplyJsonCommand(input)) {
+    const result = applyJsonCommand(scene, input, new Set<string>());
+    scene = result.next;
+    changed.push(...result.changed);
+    summaries.push(result.summary);
+  } else if (Array.isArray(input)) {
     for (const op of input) {
       const result = applyAgentOp(scene, op);
       scene = result.next;
@@ -1479,9 +1844,7 @@ async function commandApplyJson(args: string[]): Promise<void> {
   if (!raw.trim()) {
     throw new Error("Empty JSON input");
   }
-  const input = JSON.parse(raw) as
-    | AgentSpec[]
-    | { mode?: "append" | "replace" | "patch"; ops?: AgentSpec[]; elements?: ExcalidrawElement[] };
+  const input = JSON.parse(raw) as ApplyJsonInput;
   await applyJsonSpec(room, input);
 }
 

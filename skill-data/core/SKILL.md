@@ -1,6 +1,6 @@
 ---
 name: core
-description: Core excalidraw-room usage guide. Read this before running excalidraw-room commands. Covers creating or reading a shared room, applying append or replace patches via heredoc or file input, restoring snapshots, sending raw elements, and exporting PNG or SVG from scene JSON.
+description: Core excalidraw-room usage guide. Read this before running excalidraw-room commands. Covers creating or reading a shared room, applying transactional add/update/delete commands via heredoc or file input, restoring snapshots, sending raw elements, and exporting PNG or SVG from scene JSON.
 allowed-tools: Bash(excalidraw-room:*), Bash(npx -y excalidraw-room-cli:*), Bash(bunx excalidraw-room-cli:*)
 ---
 
@@ -21,7 +21,7 @@ excalidraw-room apply-json '<roomUrl>'      # 4. apply one JSON payload via stdi
 excalidraw-room export-image '<roomUrl>' /tmp/room.png   # 5. verify visually when needed
 ```
 
-Prefer one `apply-json` payload per logical change.
+Prefer one `apply-json` payload per logical change. Use a `commands` transaction when a logical change needs multiple steps.
 
 If `excalidraw-room skill` prints an update notice, tell the user a newer CLI exists before relying on version-sensitive behavior. Do not update the global CLI without explicit user approval.
 
@@ -49,13 +49,85 @@ Accepted inputs:
 - stdin: `apply-json <roomUrl>`
 - explicit stdin: `apply-json <roomUrl> -`
 
-Default to `"mode": "append"`.
-
-Use `"mode": "replace"` only when the task explicitly requires rebuilding the scene.
+Use command payloads for new work. Legacy `mode` payloads are still accepted for compatibility.
 
 ## JSON formats
 
-### Array of operations
+### Command: add
+
+```json
+{
+  "command": "elements.add",
+  "ops": [
+    {
+      "type": "addRect",
+      "x": 80,
+      "y": 80,
+      "width": 260,
+      "height": 140,
+      "backgroundColor": "#dbe4ff",
+      "label": "Agent\nentrypoint"
+    }
+  ]
+}
+```
+
+### Command: update
+
+```json
+{
+  "command": "elements.update",
+  "updates": [
+    {
+      "id": "element-id",
+      "set": {
+        "text": "Updated label",
+        "fontFamily": 2
+      }
+    }
+  ]
+}
+```
+
+### Command: delete
+
+```json
+{
+  "command": "elements.delete",
+  "ids": ["id-1", "id-2"]
+}
+```
+
+Delete every live element:
+
+```json
+{
+  "command": "elements.delete",
+  "all": true
+}
+```
+
+### Transaction
+
+Use one transaction for full redraws so deletion and creation are applied as one write:
+
+```json
+{
+  "commands": [
+    { "command": "elements.delete", "all": true },
+    {
+      "command": "elements.add",
+      "ops": [
+        { "type": "addText", "x": 100, "y": 100, "text": "New scene" }
+      ]
+    }
+  ]
+}
+```
+
+Transactions are simulated in order and written once. If any command is invalid, no room update is written.
+
+### Legacy array of operations
 
 ```json
 [
@@ -78,7 +150,7 @@ Use `"mode": "replace"` only when the task explicitly requires rebuilding the sc
 ]
 ```
 
-### Object with mode and ops
+### Legacy object with mode and ops
 
 ```json
 {
@@ -97,7 +169,7 @@ Use `"mode": "replace"` only when the task explicitly requires rebuilding the sc
 }
 ```
 
-### Raw elements payload
+### Legacy raw elements payload
 
 ```json
 {
@@ -116,15 +188,20 @@ Use `"mode": "replace"` only when the task explicitly requires rebuilding the sc
 - `addRect`
 - `addText`
 - `addArrow`
-- `move`
-- `delete`
+- `move` (legacy op)
+- `delete` (legacy op)
 
 ## Rules
 
 - Read before writing when existing ids or layout matter.
 - For multiline text in JSON, use `\n`, not `\\n`.
 - For labeled boxes, prefer `addRect` with `label`.
-- `replace` and `restore` create tombstones so open clients see deletions immediately.
+- `elements.delete` creates tombstones so open clients see deletions immediately.
+- Full redraw is `elements.delete all` plus `elements.add` in one `commands` transaction.
+- `elements.update` fails if an id does not exist.
+- `elements.add` with raw elements fails if an id already exists live.
+- Do not re-add an id deleted earlier in the same transaction.
+- Legacy `replace` and `restore` create tombstones for old live elements.
 
 ## Examples
 
@@ -133,24 +210,10 @@ Use `"mode": "replace"` only when the task explicitly requires rebuilding the sc
 ```bash
 excalidraw-room apply-json '<roomUrl>' <<'JSON'
 {
-  "mode": "append",
+  "command": "elements.add",
   "ops": [
-    {
-      "type": "addRect",
-      "x": 80,
-      "y": 80,
-      "width": 260,
-      "height": 140,
-      "backgroundColor": "#dbe4ff",
-      "label": "Agent\nentrypoint"
-    },
-    {
-      "type": "addArrow",
-      "x1": 340,
-      "y1": 150,
-      "x2": 420,
-      "y2": 150
-    }
+    { "type": "addRect", "x": 80, "y": 80, "width": 260, "height": 140, "backgroundColor": "#dbe4ff", "label": "Agent\nentrypoint" },
+    { "type": "addArrow", "x1": 340, "y1": 150, "x2": 420, "y2": 150 }
   ]
 }
 JSON
