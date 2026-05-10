@@ -356,7 +356,7 @@ async function checkForUpdate(): Promise<UpdateStatus> {
 function updateCommandHint(): string {
   return [
     `Update with npm: npm install -g ${CLI_PACKAGE_NAME}@latest`,
-    "Update from GitHub: bun add -g github:toolittlecakes/excalidraw-room-cli",
+    `Update with Bun: bun add -g ${CLI_PACKAGE_NAME}`,
   ].join("\n");
 }
 

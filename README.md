@@ -27,7 +27,7 @@ npm install -g excalidraw-room-cli@latest
 From GitHub with Bun:
 
 ```bash
-bun add -g github:toolittlecakes/excalidraw-room-cli
+bun add -g excalidraw-room-cli
 ```
 
 Check the install:

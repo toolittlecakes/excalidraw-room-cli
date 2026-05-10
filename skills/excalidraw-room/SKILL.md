@@ -1,7 +1,7 @@
 ---
 name: excalidraw-room
 description: JSON-first CLI for shared Excalidraw rooms. Use when the user wants to inspect, patch, snapshot, restore, or export a shared Excalidraw room through a room URL instead of editing manually in the browser UI.
-allowed-tools: Bash(excalidraw-room:*), Bash(npx -y git+https://github.com/toolittlecakes/excalidraw-room-cli.git:*), Bash(bunx github:toolittlecakes/excalidraw-room-cli:*)
+allowed-tools: Bash(excalidraw-room:*), Bash(npx -y excalidraw-room-cli:*), Bash(bunx excalidraw-room-cli:*)
 hidden: true
 ---
 
@@ -12,13 +12,13 @@ Fast shared Excalidraw room CLI for AI agents.
 Install:
 
 ```bash
-bun add -g github:toolittlecakes/excalidraw-room-cli
+bun add -g excalidraw-room-cli
 ```
 
 or
 
 ```bash
-npm install -g git+https://github.com/toolittlecakes/excalidraw-room-cli.git
+npm install -g excalidraw-room-cli
 ```
 
 This file is a discovery stub, not the usage guide.
@@ -34,7 +34,7 @@ The CLI serves skill content that matches the installed version, so instructions
 If the global CLI is not installed, use the fallback:
 
 ```bash
-npx -y git+https://github.com/toolittlecakes/excalidraw-room-cli.git skill
+npx -y excalidraw-room-cli skill
 ```
 
 You can list packaged skills with:

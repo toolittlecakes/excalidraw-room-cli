@@ -1,7 +1,7 @@
 ---
 name: core
 description: Core excalidraw-room usage guide. Read this before running excalidraw-room commands. Covers creating or reading a shared room, applying append or replace patches via heredoc or file input, restoring snapshots, sending raw elements, and exporting PNG or SVG from scene JSON.
-allowed-tools: Bash(excalidraw-room:*), Bash(npx excalidraw-room-cli:*), Bash(bunx excalidraw-room-cli:*)
+allowed-tools: Bash(excalidraw-room:*), Bash(npx -y excalidraw-room-cli:*), Bash(bunx excalidraw-room-cli:*)
 ---
 
 # excalidraw-room core
